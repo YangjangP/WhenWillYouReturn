@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비디오 상영관</title>
+    <style>
+        /* 기본 여백 제거 및 어두운 배경 설정 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505; /* 아주 어두운 방 느낌 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* 빛줄기 (영사기 렌즈에서 나오는 빛 연출) */
+        .light-beam {
+            position: absolute;
+            top: -20vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 120vh;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0) 100%);
+            clip-path: polygon(45% 0, 55% 0, 100% 100%, 0% 100%);
+            pointer-events: none; /* 클릭 방해 안 함 */
+            z-index: 1;
+            animation: flicker-light 0.15s infinite alternate;
+        }
+
+        /* 스크린 컨테이너 (966x720 비율 유지) */
+        .screen-container {
+            position: relative;
+            width: 95vw;
+            max-width: 966px; /* 최대 너비 */
+            aspect-ratio: 966 / 720; /* 요청하신 영상 비율 강제 고정 */
+            background-color: #000;
+            box-shadow: 0 0 100px rgba(255, 255, 220, 0.2); /* 스크린 주변 빛 반사 (Glow) */
+            z-index: 2;
+            animation: flicker-light 0.15s infinite alternate; /* 영사기 특유의 미세한 깜빡임 */
+        }
+
+        /* 실제 비디오 요소 */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* 옛날 필름 느낌을 내는 필터 (원치 않으시면 지워주세요) */
+            filter: grayscale(20%) sepia(30%) contrast(120%) brightness(110%);
+        }
+
+        /* 필름 노이즈 (자글자글한 효과) */
+        .grain-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* SVG로 만든 노이즈 패턴 */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.12;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 3;
+        }
+
+        /* 비네팅 (가장자리 어둡게) */
+        .vignette-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        /* 빛/투명도 깜빡임 애니메이션 키프레임 */
+        @keyframes flicker-light {
+            0%   { opacity: 0.90; }
+            25%  { opacity: 0.95; }
+            50%  { opacity: 0.88; }
+            75%  { opacity: 1.00; }
+            100% { opacity: 0.92; }
+        }
+
+        /* 소리 켜기 버튼 (UI를 최소화하기 위해 심플하게) */
+        #unmute-btn {
+            position: absolute;
+            bottom: -50px;
+            right: 0;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        #unmute-btn:hover {
+            color: #fff;
+            border-color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #unmute-btn.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 영사기 빔 효과 -->
+    <div class="light-beam"></div>
+
+    <!-- 스크린 전체 -->
+    <div class="screen-container">
+        <!-- 
+            여기에 깃허브에 올린 영상 파일 이름을 넣으세요!
+            (현재는 에러를 방지하기 위해 테스트용 샘플 비디오가 적용되어 있습니다. 깃허브에 올리실 때 본인의 영상 파일명으로 수정하세요.)
+        -->
+        <video id="projector-video" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" autoplay muted loop playsinline></video>
+        
+        <!-- 오버레이 효과들 -->
+        <div class="grain-overlay"></div>
+        <div class="vignette-overlay"></div>
+
+        <!-- 소리 켜기 버튼 (영사기 밖 우측 하단) -->
+        <button id="unmute-btn">소리 켜기 (Click to Unmute)</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('projector-video');
+            const unmuteBtn = document.getElementById('unmute-btn');
+
+            // 소리 켜기 버튼 클릭 이벤트
+            unmuteBtn.addEventListener('click', () => {
+                video.muted = false; // 음소거 해제
+                unmuteBtn.classList.add('hidden'); // 버튼 숨기기
+                
+                // 만약 브라우저 정책으로 멈춰있었다면 다시 재생 시도
+                if (video.paused) {
+                    const playPromise = video.play();
+                    // 지원되지 않는 소스일 경우 에러가 발생하여 스크립트가 멈추는 것을 방지
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.warn("비디오 재생 실패. 파일 경로가 올바른지 확인해주세요:", error);
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
