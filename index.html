@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>비디오 상영관</title>
+    <title>幾時你回來</title>
     <style>
         /* 기본 여백 제거 및 어두운 배경 설정 */
         body, html {
@@ -39,7 +39,7 @@
             position: relative;
             width: 95vw;
             max-width: 966px; /* 최대 너비 */
-            aspect-ratio: 966 / 720; /* 요청하신 영상 비율 강제 고정 */
+            aspect-ratio: 966 / 720; /* 영상 비율 강제 고정 */
             background-color: #000;
             box-shadow: 0 0 100px rgba(255, 255, 220, 0.2); /* 스크린 주변 빛 반사 (Glow) */
             z-index: 2;
@@ -51,7 +51,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* 옛날 필름 느낌을 내는 필터 (원치 않으시면 지워주세요) */
+            /* 옛날 필름 느낌을 내는 필터 */
             filter: grayscale(20%) sepia(30%) contrast(120%) brightness(110%);
         }
 
@@ -119,11 +119,7 @@
 
     <!-- 스크린 전체 -->
     <div class="screen-container">
-        <!-- 
-            여기에 깃허브에 올린 영상 파일 이름을 넣으세요!
-            (현재는 에러를 방지하기 위해 테스트용 샘플 비디오가 적용되어 있습니다. 깃허브에 올리실 때 본인의 영상 파일명으로 수정하세요.)
-        -->
-        <video id="projector-video" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" autoplay muted loop playsinline></video>
+        <video id="projector-video" src="./whenwillyoureturn.mp4" autoplay muted loop playsinline></video>
         
         <!-- 오버레이 효과들 -->
         <div class="grain-overlay"></div>
